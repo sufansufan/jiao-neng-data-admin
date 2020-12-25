@@ -70,7 +70,7 @@ const contents: React.FC<{}> = () => {
         if (!values.metadata) {
           setUploadLoading(false);
           message.warning('请添加一条元数据');
-          return
+          return;
         }
         addResources(values)
           .then(() => {
@@ -136,7 +136,7 @@ const contents: React.FC<{}> = () => {
     },
     {
       name: 'company_id',
-      label: '子公司',
+      label: '公司',
       el: (
         <Select
           value={searchInfo.companyId}
@@ -182,7 +182,7 @@ const contents: React.FC<{}> = () => {
       align: 'center',
     },
     {
-      title: '子公司',
+      title: '公司',
       dataIndex: 'company_name',
       align: 'center',
     },
@@ -204,6 +204,15 @@ const contents: React.FC<{}> = () => {
       ),
     },
   ];
+  const checkNumAndCode = (rule:any, value:any, title:string) => {
+    if(!value) {
+      return Promise.reject(title+' 必填');
+    }
+    if (/^[a-zA-Z][a-zA-Z0-9_]*$/.test(value)) {
+      return Promise.resolve();
+    }
+    return Promise.reject('只能输入以字母开头，允许字母数字下划线');
+  };
   return (
     <PageHeaderWrapper title="资源目录">
       <Table
@@ -249,7 +258,7 @@ const contents: React.FC<{}> = () => {
           ) : (
             <>
               <div style={{ display: 'flex' }}>
-                <Item label="表名" name="table_name" rules={[{ required: true }]}>
+                <Item label="表名" name="table_name" rules={[{ required: true, validator:(rule, value)=> checkNumAndCode(rule, value, '表名')}]}>
                   <Input placeholder="请输入" style={{ width: '200px' }} />
                 </Item>
                 <span
@@ -263,7 +272,7 @@ const contents: React.FC<{}> = () => {
                   表名已存在请换个名字
                 </span>
               </div>
-              <div style={{ margin: '-10px 0px 20px 50px' }}>
+              <div style={{ margin: '-8px 0px 20px 50px' }}>
                 表名不能重复，只能是字母开头，允许字母数字下划线
               </div>
               <div className={styles.name}>元数据</div>
@@ -284,7 +293,7 @@ const contents: React.FC<{}> = () => {
                           <Item
                             {...field}
                             name={[field.name, 'attr_name']}
-                            rules={[{ required: true, message: '字段 必填' }]}
+                            rules={[{ required: true,  validator:(rule, value)=> checkNumAndCode(rule, value, '字段')}]}
                           >
                             <Input placeholder="请输入" />
                           </Item>

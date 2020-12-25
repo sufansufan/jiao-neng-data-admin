@@ -10,7 +10,7 @@ export async function findHistory(params: object) {
 
 // 获取异常日志列表
 export async function findErrorLog(params: object) {
-  return request('/analysis/resources/logs?type=ERROR', {
+  return request('/analysis/resources/errors', {
     method: 'GET',
     params,
   });

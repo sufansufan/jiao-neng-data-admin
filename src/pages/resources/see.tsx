@@ -1,39 +1,35 @@
 import React, { memo, useEffect, useState } from 'react';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { Button, Select, Space, Modal, Form, message, Input, Popconfirm } from 'antd';
+import { Button, Select, Space, Modal, Form, message, Input, Popconfirm, Tooltip } from 'antd';
 
 import Table from '@/components/Table';
 import {
   getResourceRows,
   deleteResourceRows,
-  dataType,
   updateResourceRows,
+  getdetails,
 } from '@/services/resources';
 
 const { Item } = Form;
-const { Option } = Select;
+const { TextArea } = Input;
 
 const see: React.FC<any> = (props) => {
   const [total, setTotal] = useState(1);
   const [tableData, setTableData] = useState([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [attrType, setAttrType] = useState([]);
   const [formInfo, setFormInfo] = useState<any>({});
   const [uploadLoading, setUploadLoading] = useState<boolean>(false);
-
+  const [detailsInfo, setDetailsInfo] = useState<any>([]);
+  const [columns, setColumns] = useState<any>([]);
   const [form] = Form.useForm();
   const onFinish = async (values: any) => {
     setUploadLoading(true);
-    const { row_id, id } = formInfo;
-    const { attr_name, attr_type, name } = values;
+    const { row_id } = formInfo;
     const params = {
       row_id,
       resource_id: props.match.params.id,
       data: {
-        attr_name,
-        attr_type,
-        name,
-        id,
+        ...values,
       },
     };
     updateResourceRows(params)
@@ -65,39 +61,29 @@ const see: React.FC<any> = (props) => {
     });
   };
   const handleEdit = (item: any) => {
-    const {
-      row_id,
-      data: { attr_name, attr_type, name, id },
-    } = item;
+    const { row_id, data } = item;
     setFormInfo({
       row_id,
-      attr_name,
-      attr_type,
-      name,
-      id,
+      ...data,
     });
     setModalVisible(true);
   };
-  useEffect(() => {
-    getData();
-    dataType().then(({ attr_types }) => {
-      setAttrType(attr_types);
+  const handlerColumns = (details: any) => {
+    const list = [];
+    details.metadata.forEach((item: any) => {
+      list.push({
+        title: `${item.name}( ${item.attr_name} )`,
+        ellipsis: {
+          showTitle: false,
+        },
+        render: (v: any) => (
+          <Tooltip placement="topLeft" title={v.data[item.attr_name]}>
+            <span>{v.data[item.attr_name]}</span>
+          </Tooltip>
+        ),
+      });
     });
-  }, []);
-  const columns = [
-    {
-      title: '字段',
-      render: (item: any) => <span>{item.data.attr_name}</span>,
-    },
-    {
-      title: '说明',
-      render: (item: any) => <span>{item.data.name}</span>,
-    },
-    {
-      title: '类型',
-      render: (item: any) => <span>{item.data.attr_type}</span>,
-    },
-    {
+    list.push({
       title: '操作',
       render: (item: any) => (
         <Space size="middle">
@@ -112,8 +98,22 @@ const see: React.FC<any> = (props) => {
           </Popconfirm>
         </Space>
       ),
-    },
-  ];
+    });
+    setColumns(list);
+  };
+  useEffect(() => {
+    const fetchData = async () => {
+      const details = await getdetails(props.match.params.id);
+      await setDetailsInfo(details);
+      await handlerColumns(details);
+      await getData();
+    };
+    fetchData();
+  }, []);
+  const layout = {
+    labelCol: { span: 7 },
+    // wrapperCol: { span: 8 },
+  };
   return (
     <PageHeaderWrapper title="查看资源">
       <Table
@@ -125,32 +125,22 @@ const see: React.FC<any> = (props) => {
       <Modal
         width={600}
         destroyOnClose
-        title="修改资源"
+        title="修改数据"
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={null}
       >
-        <Form
-          form={form}
-          initialValues={formInfo}
-          onFinish={onFinish}
-          validateMessages={{ required: '${label} 必填!' }}
-        >
-          <Item label="字段" name="attr_name" rules={[{ required: true }]}>
-            <Input placeholder="请输入" style={{ width: '200px' }} />
-          </Item>
-          <Item label="说明" name="name" rules={[{ required: true }]}>
-            <Input placeholder="请输入" style={{ width: '200px' }} />
-          </Item>
-          <Item label="类型" name="attr_type" rules={[{ required: true }]}>
-            <Select allowClear={true} placeholder="请选择" style={{ width: '200px' }}>
-              {attrType.map((item: any, index: any) => (
-                <Option value={item.name} key={index}>
-                  {item.name}
-                </Option>
-              ))}
-            </Select>
-          </Item>
+        <Form {...layout} form={form} initialValues={formInfo} onFinish={onFinish}>
+          {detailsInfo.metadata &&
+            detailsInfo.metadata.map((item: any) => (
+              <Item label={item.name} name={item.attr_name}>
+                {item.attr_type === 'text' ? (
+                  <TextArea rows={2} placeholder="请输入" />
+                ) : (
+                  <Input placeholder="请输入" style={{ width: '390px' }} />
+                )}
+              </Item>
+            ))}
           <Item>
             <Button
               type="primary"

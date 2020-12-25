@@ -20,6 +20,11 @@ const importData: React.FC<any> = (props) => {
     const formData = new FormData();
     formData.append('file', fileList[0]);
     formData.append('note', values.note);
+    if(!fileList.length){
+      message.success('请上传文件！');
+      setUploadLoading(false);
+      return
+    }
     uploadFile(match.params.id, formData)
       .then(() => {
         setUploadLoading(false);
@@ -32,7 +37,20 @@ const importData: React.FC<any> = (props) => {
       });
   };
   const uploadProps = {
+    onRemove: (file: any) => {
+      const index = fileList.indexOf(file)
+      const newFileList = fileList.slice()
+      newFileList.splice(index, 1);
+      setFileList(newFileList)
+    },
     beforeUpload: (file: any) => {
+      console.log(file)
+      const fileType = file.name.split('.')
+      const type = fileType[fileType.length - 1]
+      if(type.toLowerCase() !== 'csv') {
+        message.error('请上传.csv格式的文件！');
+        return
+      }
       setFileList([file]);
       return false;
     },
@@ -40,7 +58,7 @@ const importData: React.FC<any> = (props) => {
   };
   const download = () => {
     downloadTemplate(match.params.id).then((res) => {
-      exportData(res, '模板');
+      exportData(res, '模板.csv');
     });
   };
   const columns: any = [
@@ -65,7 +83,8 @@ const importData: React.FC<any> = (props) => {
       const { attr_types } = await dataType();
       const details = await getdetails(match.params.id);
       await details.metadata.map((item: any) => {
-        item.attr_type_name = attr_types.find((v: any) => v.value === item.attr_type).name;
+        const attrTypes = attr_types.find((v: any) => v.value === item.attr_type)
+        item.attr_type_name = attrTypes && attrTypes.name;
       });
       await setDetailsData(details);
       await setTableData(details.metadata);
@@ -136,7 +155,13 @@ const importData: React.FC<any> = (props) => {
           onCancel={() => setModalVisible(false)}
           footer={null}
         >
-          <Table dataSource={tableData} columns={columns} />
+          <Table
+            dataSource={tableData}
+            columns={columns}
+            pagination={{
+              hideOnSinglePage: true,
+            }}
+          />
         </Modal>
       </Card>
     </PageHeaderWrapper>

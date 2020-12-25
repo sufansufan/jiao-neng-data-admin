@@ -33,7 +33,7 @@ const List: React.FC<{}> = () => {
   };
 
   const getErrorLog = (params: any = {}) => {
-    findErrorLog(params).then((res: any) => {
+    findErrorLog({ ...params, page: params.page || 1, limit: 10 }).then((res: any) => {
       const { total_count, logs } = res;
       setErrorLog({
         list: logs,
@@ -43,7 +43,7 @@ const List: React.FC<{}> = () => {
   };
 
   const getLog = (params: any = {}) => {
-    findLog(params).then((res: any) => {
+    findLog({ ...params, page: params.page || 1, limit: 10 }).then((res: any) => {
       const { total_count, logs } = res;
       setLog({
         list: logs,
@@ -64,12 +64,17 @@ const List: React.FC<{}> = () => {
   const columns = [
     {
       title: '资源目录',
-      dataIndex: 'resource_name',
+      dataIndex: 'name',
+      align: 'center',
+    },
+    {
+      title: '公司名称',
+      dataIndex: 'company_name',
       align: 'center',
     },
     {
       title: '错误原因',
-      dataIndex: 'message',
+      dataIndex: 'content',
       align: 'center',
     },
   ];
@@ -132,7 +137,23 @@ const List: React.FC<{}> = () => {
         <div style={{ width: 'calc(50% - 10px)' }}>
           <Table
             title="日志"
-            columns={columns}
+            columns={[
+              {
+                title: '资源目录',
+                dataIndex: 'resource_name',
+                align: 'center',
+              },
+              {
+                title: '公司名称',
+                dataIndex: 'company_name',
+                align: 'center',
+              },
+              {
+                title: '采集时间',
+                dataIndex: 'updated_at',
+                align: 'center',
+              },
+            ]}
             data={log.list}
             total={log.total}
             onChange={(params: object) => getLog(params)}

@@ -1,6 +1,5 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Form, Input, Button, Select, Space, message } from 'antd';
-import styles from './styles/metadataAdd.less';
 import { addInput } from '@/services/resources';
 const { Item, List } = Form;
 const { Option } = Select;
@@ -13,21 +12,13 @@ interface comProps {
 
 const inputData: React.FC<comProps> = (props: comProps) => {
   const { inputList, attrType, closeModal } = props;
-  const metaList: any = [];
-  inputList.metadata.map((item: any) => {
-    let obj = {};
-    for (const key in item) {
-      obj[key] = '';
-    }
-    metaList.push(obj);
-  });
-  const [formInfo, setFormInfo] = useState<any>({ ...inputList, metadata: metaList });
+  const [formInfo, setFormInfo] = useState<any>({ ...inputList });
   const [uploadLoading, setUploadLoading] = useState<boolean>(false);
   const onFinish = (values: any) => {
     setUploadLoading(true);
     const { id } = inputList;
     const params = {
-      rows: values.metadata,
+      rows: [values],
     };
     addInput(id, params)
       .then(() => {
@@ -49,53 +40,22 @@ const inputData: React.FC<comProps> = (props: comProps) => {
           </div>
         </div>
       </Item>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ width: '33.33%' }}>
-          <div style={{ color: 'rgba(0,0,0,0.85)' }}>字段</div>
-          <div>字母数字下划线</div>
-        </div>
-        <div style={{ width: '33.33%', color: 'rgba(0,0,0,0.85)' }}> 说明</div>
-        <div style={{ width: '33.33%', color: 'rgba(0,0,0,0.85)' }}> 类型</div>
-      </div>
-      <List name="metadata">
-        {(fields, { add, remove }) => {
-          return (
-            <div className={styles.formInfo}>
-              {fields.map((field) => (
-                <Space key={field.key} className={styles.space} align="start">
-                  <Item
-                    {...field}
-                    name={[field.name, 'attr_name']}
-                    rules={[{ required: true, message: '字段 必填' }]}
-                  >
-                    <Input placeholder="请输入" />
-                  </Item>
-                  <Item
-                    {...field}
-                    name={[field.name, 'name']}
-                    rules={[{ required: true, message: '说明 必填' }]}
-                  >
-                    <Input placeholder="请输入" />
-                  </Item>
-                  <Item
-                    {...field}
-                    name={[field.name, 'attr_type']}
-                    rules={[{ required: true, message: '类型 必填' }]}
-                  >
-                    <Select allowClear={true} placeholder="请选择" style={{ width: '200px' }}>
-                      {attrType.map((item: any, index: any) => (
-                        <Option value={item.value} key={index}>
-                          {item.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Item>
-                </Space>
-              ))}
+      {formInfo.metadata.map((item: any, index: any) => (
+        <Item
+          key={item.id}
+          name={item.attr_name}
+          rules={[{ required: true, message: `请输入${item.name}` }]}
+        >
+          <Space align="start">
+            <div style={{ marginTop: '-7px', minWidth: '90px' }}>
+              <div>{item.name}</div>
+              <div>{item.attr_name}</div>
             </div>
-          );
-        }}
-      </List>
+            <Input placeholder="请输入" style={{ width: '300px' }} />
+            <div style={{ marginTop: '3px' }}>{item.attr_type}</div>
+          </Space>
+        </Item>
+      ))}
       <Item>
         <Button loading={uploadLoading} type="primary" htmlType="submit" style={{ float: 'right' }}>
           提交

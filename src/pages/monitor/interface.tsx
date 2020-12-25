@@ -33,7 +33,7 @@ const List: React.FC<{}> = () => {
   };
 
   const getInterfaceLog = (params: any = {}) => {
-    findInterfaceLog(params).then((res: any) => {
+    findInterfaceLog({ ...params, page: params.page || 1, limit: 10 }).then((res: any) => {
       const { total_count, logs } = res;
       setInterfaceLog({
         list: logs,
@@ -43,7 +43,7 @@ const List: React.FC<{}> = () => {
   };
 
   const getInterfaceTopLog = (params: any = {}) => {
-    findInterfaceTopLog(params).then((res: any) => {
+    findInterfaceTopLog({ ...params, page: params.page || 1, limit: 10 }).then((res: any) => {
       const { total_count, items } = res;
       setLog({
         list: items,

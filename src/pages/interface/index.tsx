@@ -28,11 +28,13 @@ const InterFace: React.FC<{}> = () => {
   const [form] = Form.useForm();
 
   const getData = (params: any = {}) => {
-    getServicesList({ ...params, q: searchValue }).then((res: any) => {
-      const { total_count, services } = res;
-      setTotal(total_count);
-      setTableData(services);
-    });
+    getServicesList({ ...params, page: params.page || 1, limit: 10, q: searchValue }).then(
+      (res: any) => {
+        const { total_count, services } = res;
+        setTotal(total_count);
+        setTableData(services);
+      },
+    );
   };
 
   const onFinish = async (values: any) => {
